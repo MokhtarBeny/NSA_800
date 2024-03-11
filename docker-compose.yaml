@@ -1,0 +1,123 @@
+version: '3'
+services:
+  traefik:
+    image: "traefik:v2.4"
+    command:
+      - "--log.level=DEBUG"      
+      - "--api.dashboard=true"
+      - "--providers.docker=true"
+      - "--providers.docker.exposedbydefault=false"
+      - "--providers.docker.watch"
+      - "--entrypoints.web.address=:80"
+      - "--entrypoints.metrics.address=:8082"
+      - "--metrics.prometheus=true"
+      - "--metrics.prometheus.entryPoint=metrics"
+      - "--metrics.prometheus.buckets=0.1,0.3,1.2,5.0"
+    ports:
+      - "80:80"
+      - "8082:8082"
+    volumes:
+      - "/var/run/docker.sock:/var/run/docker.sock:ro"
+    networks:
+      - monitoring-net
+
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "8081:80"
+    environment:
+      APP_DEBUG: "true"
+      APP_ENV: "dev"
+      APP_KEY: "base64:DJYTvaRkEZ/YcQsX3TMpB0iCjgme2rhlIOus9A1hnj4="
+      DB_CONNECTION: mysql
+      DB_HOST: db
+      DB_PORT: 3306
+      DB_DATABASE: app_database
+      DB_USERNAME: app_user
+      DB_PASSWORD: app_password
+    depends_on:
+      - db
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.app.rule=Host(`localhost`)"
+    networks:
+      - monitoring-net
+
+  db:
+    image: mysql:5.7
+    restart: always
+    environment:
+      MYSQL_DATABASE: app_database
+      MYSQL_USER: app_user
+      MYSQL_PASSWORD: app_password
+      MYSQL_ROOT_PASSWORD: app_root_password
+    volumes:
+      - db_data:/var/lib/mysql
+    networks:
+      - monitoring-net
+
+  prometheus:
+    image: prom/prometheus
+    container_name: my-prometheus
+    volumes:
+      - ./lostOps/prometheus/:/etc/prometheus/
+      - prometheus_data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--storage.tsdb.retention.size=256MB'
+    labels:
+      - "traefik.http.routers.prometheus.service=prometheus"
+      - "traefik.http.services.prometheus.loadbalancer.server.port=9090"
+    ports:
+      - "9090:9090"
+    networks:
+      - monitoring-net
+    restart: unless-stopped
+
+  grafana:
+    image: grafana/grafana
+    container_name: my-grafana
+    depends_on:
+      - prometheus
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./grafana/provisioning/:/etc/grafana/provisioning/
+    environment:
+      GF_INSTALL_PLUGINS: grafana-piechart-panel
+      GF_SECURITY_ADMIN_PASSWORD: momo
+      GF_SECURITY_ADMIN_USER: momo
+    labels:
+      - "traefik.http.routers.grafana.service=grafana"
+      - "traefik.http.services.grafana.loadbalancer.server.port=3000"
+    ports:
+      - "3000:3000"
+    networks:
+      - monitoring-net
+
+  node-exporter:
+    image: prom/node-exporter
+    networks:
+      - monitoring-net
+    ports:
+      - 9100:9100
+
+  alert-manager:
+    image: prom/alertmanager
+    volumes:
+      - "/lostOps/alertmanager/alertmanager.yml:/alertmanager/alertmanager.yml"
+    networks:
+      - monitoring-net
+    ports:
+      - 9093:9093
+
+volumes:
+  db_data:
+  prometheus_data:
+  grafana_data:
+
+networks:
+  monitoring-net:
+    driver: bridge
