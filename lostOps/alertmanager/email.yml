@@ -1,0 +1,20 @@
+# alertmanager.yml
+
+route:
+  receiver: 'Mail Alert'
+  # group_by: [ alertname ]
+  repeat_interval: 30s
+  group_wait: 15s
+  group_interval: 15s
+
+receivers:
+ - name: 'Mail Alert'
+   email_configs:
+      - smarthost: 'smtp.gmail.com:587'
+        auth_username: 'epitest77@gmail.com'
+        auth_password: "password77!"
+        require_tls: false
+        from: 'epitest77@gmail.com'
+        to: 'epitest77@gmail.com'
+        headers:
+          subject: 'Prometheus Mail Alerts'
