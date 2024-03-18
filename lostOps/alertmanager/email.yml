@@ -10,11 +10,11 @@ route:
 receivers:
  - name: 'Mail Alert'
    email_configs:
-      - smarthost: 'smtp.gmail.com:587'
-        auth_username: 'epitest77@gmail.com'
-        auth_password: "password77!"
+      - smarthost: 'mail.sanlamamba.com:465'
+        auth_username: 'test@sanlamamba.com'
+        auth_password: "Gouverneur2024+"
         require_tls: false
-        from: 'epitest77@gmail.com'
-        to: 'epitest77@gmail.com'
+        from: 'test@sanlamamba.com'
+        to: 'contact@sanlamamba.com'
         headers:
           subject: 'Prometheus Mail Alerts'

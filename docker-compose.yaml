@@ -99,6 +99,7 @@ services:
 
   node-exporter:
     image: prom/node-exporter
+    container_name: node-exporter
     networks:
       - monitoring-net
     ports:
@@ -106,17 +107,21 @@ services:
 
   alert-manager:
     image: prom/alertmanager
+    container_name: alert-manager
     volumes:
-      - "/lostOps/alertmanager/alertmanager.yml:/alertmanager/alertmanager.yml"
+      - "./lostOps/alertmanager:/config"
+      - alertmanager-data:/data
+    command: --config.file=/config/email.yml --log.level=debug
     networks:
       - monitoring-net
     ports:
       - 9093:9093
-
+  
 volumes:
   db_data:
   prometheus_data:
   grafana_data:
+  alertmanager-data:
 
 networks:
   monitoring-net:
