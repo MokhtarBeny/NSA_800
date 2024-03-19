@@ -82,9 +82,10 @@ services:
     container_name: my-grafana
     depends_on:
       - prometheus
+      - loki
     volumes:
       - grafana_data:/var/lib/grafana
-      - ./grafana/provisioning/:/etc/grafana/provisioning/
+      - ./lostOps/grafana/provisioning/:/etc/grafana/provisioning/
     environment:
       GF_INSTALL_PLUGINS: grafana-piechart-panel
       GF_SECURITY_ADMIN_PASSWORD: momo
@@ -117,12 +118,34 @@ services:
     ports:
       - 9093:9093
   
+  loki:
+    image: grafana/loki:latest
+    volumes:
+      - "./lostOps/loki:/etc/loki"
+      - loki-data:/data
+    command: -config.file=/etc/loki/loki-config.yml
+    ports:
+      - "3100:3100"
+    networks:
+      - monitoring-net
+
+  promtail:
+    image: grafana/promtail:latest
+    volumes:
+      - ./promtail-config.yaml:/etc/promtail/promtail-config.yaml
+    networks:
+      - monitoring-net
+    depends_on:
+      - loki
+  
 volumes:
   db_data:
   prometheus_data:
   grafana_data:
   alertmanager-data:
+  loki-data:
 
 networks:
   monitoring-net:
+
     driver: bridge
