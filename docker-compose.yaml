@@ -64,7 +64,7 @@ services:
 
   prometheus:
     image: prom/prometheus
-    container_name: my-prometheus
+    container_name: prometheus
     volumes:
       - ./lostOps/prometheus/:/etc/prometheus/
       - prometheus_data:/prometheus
@@ -83,7 +83,7 @@ services:
 
   grafana:
     image: grafana/grafana
-    container_name: my-grafana
+    container_name: grafana
     depends_on:
       - prometheus
       - loki
@@ -92,8 +92,8 @@ services:
       - ./lostOps/grafana/:/etc/grafana/provisioning/datasources/
     environment:
       GF_INSTALL_PLUGINS: grafana-piechart-panel
-      GF_SECURITY_ADMIN_PASSWORD: momo
-      GF_SECURITY_ADMIN_USER: momo
+      GF_SECURITY_ADMIN_PASSWORD: admin
+      GF_SECURITY_ADMIN_USER: admin
     labels:
       - "traefik.http.routers.grafana.service=grafana"
       - "traefik.http.services.grafana.loadbalancer.server.port=3000"
