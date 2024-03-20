@@ -44,6 +44,7 @@ services:
       - "traefik.http.routers.app.rule=Host(`localhost`)"
     networks:
       - monitoring-net
+    restart: unless-stopped
 
   db:
     image: mysql:5.7
@@ -57,6 +58,7 @@ services:
       - db_data:/var/lib/mysql
     networks:
       - monitoring-net
+    restart: unless-stopped
 
   prometheus:
     image: prom/prometheus
