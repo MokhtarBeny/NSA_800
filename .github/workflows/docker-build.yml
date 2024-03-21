@@ -1,20 +1,27 @@
 name: Build and Push to Docker Hub
-'on':
-  push: null
+
+on:
+  push:
+
 jobs:
   build:
     runs-on: ubuntu-latest
-  steps:
-    - name: Checkout repository code
-      uses: actions/checkout@v2
-    - name: Build the image
-      run: docker-compose build
-    - name: Login to Docker Hub
-      uses: docker/login-action@v1
-      with:
-        username: sanlamamba
-        password: dckr_pat_0PSOGQN0ZIy_RGKrig-x3B0ewAo
-    - name: Tag the image with Git SHA
-      run: 'docker tag t-nsa-800_app sanlamamba/lostops_nsa_800:${GITHUB_SHA::8}'
-    - name: Push the image
-      run: 'docker push sanlamamba/lostops_nsa_800:${GITHUB_SHA::8}'
+    steps:
+      - name: Checkout repository code
+        uses: actions/checkout@v2
+
+      - name: Build the image
+        run: docker-compose build
+
+      - name: Tag the image with Git SHA
+        run: echo "SHA"
+
+      - name: Login to Docker Hub
+        uses: docker/login-action@v1
+        with:
+          username: sanlamamba
+          password: dckr_pat_0PSOGQN0ZIy_RGKrig-x3B0ewAo
+          # DOCKER_HUB_USERNAME and DOCKER_HUB_PAT
+
+      - name: Push the image
+        run: docker push sanlamamba/lostops_nsa_800:latest
