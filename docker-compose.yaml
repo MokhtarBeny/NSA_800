@@ -53,7 +53,6 @@ services:
 
   db:
     image: mysql:5.7
-    restart: always
     environment:
       MYSQL_DATABASE: app_database
       MYSQL_USER: app_user
