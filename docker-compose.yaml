@@ -2,6 +2,7 @@ version: '3'
 services:
   traefik:
     image: "traefik:v2.4"
+    container_name: traefik
     command:
       - "--log.level=DEBUG"      
       - "--api.dashboard=true"
@@ -18,6 +19,9 @@ services:
       - "8082:8082"
     volumes:
       - "/var/run/docker.sock:/var/run/docker.sock:ro"
+    labels:
+      logging: "promtail"
+      logging_jobname: "containerlogs"
     networks:
       - monitoring-net
 
@@ -25,6 +29,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
+    image : sanlamamba/lostops_nsa_800:latest
     ports:
       - "8081:80"
     environment:
@@ -44,6 +49,7 @@ services:
       - "traefik.http.routers.app.rule=Host(`localhost`)"
     networks:
       - monitoring-net
+    restart: unless-stopped
 
   db:
     image: mysql:5.7
@@ -57,10 +63,11 @@ services:
       - db_data:/var/lib/mysql
     networks:
       - monitoring-net
+    restart: unless-stopped
 
   prometheus:
     image: prom/prometheus
-    container_name: my-prometheus
+    container_name: prometheus
     volumes:
       - ./lostOps/prometheus/:/etc/prometheus/
       - prometheus_data:/prometheus
@@ -79,16 +86,17 @@ services:
 
   grafana:
     image: grafana/grafana
-    container_name: my-grafana
+    container_name: grafana
     depends_on:
       - prometheus
+      - loki
     volumes:
       - grafana_data:/var/lib/grafana
-      - ./grafana/provisioning/:/etc/grafana/provisioning/
+      - ./lostOps/grafana/:/etc/grafana/provisioning/datasources/
     environment:
       GF_INSTALL_PLUGINS: grafana-piechart-panel
-      GF_SECURITY_ADMIN_PASSWORD: momo
-      GF_SECURITY_ADMIN_USER: momo
+      GF_SECURITY_ADMIN_PASSWORD: admin
+      GF_SECURITY_ADMIN_USER: admin
     labels:
       - "traefik.http.routers.grafana.service=grafana"
       - "traefik.http.services.grafana.loadbalancer.server.port=3000"
@@ -99,6 +107,7 @@ services:
 
   node-exporter:
     image: prom/node-exporter
+    container_name: node-exporter
     networks:
       - monitoring-net
     ports:
@@ -106,17 +115,52 @@ services:
 
   alert-manager:
     image: prom/alertmanager
+    container_name: alert-manager
     volumes:
-      - "/lostOps/alertmanager/alertmanager.yml:/alertmanager/alertmanager.yml"
+      - "./lostOps/alertmanager:/config"
+      - alertmanager-data:/data
+    command: --config.file=/config/email.yml --log.level=debug
     networks:
       - monitoring-net
     ports:
       - 9093:9093
+  
+  loki:
+    image: grafana/loki:latest
+    container_name: loki
+    user: "root"
+    volumes:
+      - "./lostOps/loki:/etc/loki"
+      - loki-data:/data
+    command: 
+      - '-config.file=/etc/loki/loki-config.yml'
+    ports:
+      - "3100:3100"
+    networks:
+      - monitoring-net
 
+  promtail:
+    image: grafana/promtail:latest
+    container_name: promtail
+    volumes:
+      - "./lostOps/promtail:/etc/promtail"
+      - /var/lib/docker/containers:/var/lib/docker/containers:ro
+      - /var/run/docker.sock:/var/run/docker.sock
+      - promtail-data:/data
+    command: 
+      - '-config.file=/etc/promtail/promtail-config.yml'
+    networks:
+      - monitoring-net
+    depends_on:
+      - loki
+  
 volumes:
   db_data:
   prometheus_data:
   grafana_data:
+  alertmanager-data:
+  loki-data:
+  promtail-data:
 
 networks:
   monitoring-net:
