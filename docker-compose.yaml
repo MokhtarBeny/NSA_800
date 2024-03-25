@@ -22,6 +22,7 @@ services:
       - monitoring-net
 
   app:
+    container_name: app
     build:
       context: .
       dockerfile: Dockerfile
@@ -47,6 +48,7 @@ services:
 
   db:
     image: mysql:5.7
+    container_name: db
     restart: always
     environment:
       MYSQL_DATABASE: app_database
@@ -57,6 +59,20 @@ services:
       - db_data:/var/lib/mysql
     networks:
       - monitoring-net
+      
+  mysqld_exporter:
+    image: prom/mysqld-exporter
+    container_name: mysqld_exporter
+    environment:
+      DATA_SOURCE_NAME: "app_user:app_password@tcp(db:3306)/"
+    command:
+      - '--no-collect.info_schema.tables'
+    ports:
+      - "9104:9104"  # Expose le port de l'exportateur
+    networks:
+      - monitoring-net
+    depends_on:
+      - db
 
   prometheus:
     image: prom/prometheus
@@ -81,7 +97,7 @@ services:
     image: grafana/grafana
     container_name: my-grafana
     depends_on:
-      - prometheus
+      - prometheus      
     volumes:
       - grafana_data:/var/lib/grafana
       - ./grafana/provisioning/:/etc/grafana/provisioning/
@@ -99,6 +115,7 @@ services:
 
   node-exporter:
     image: prom/node-exporter
+    container_name: node-exporter
     networks:
       - monitoring-net
     ports:
@@ -107,7 +124,9 @@ services:
   alert-manager:
     image: prom/alertmanager
     volumes:
-      - "/lostOps/alertmanager/alertmanager.yml:/alertmanager/alertmanager.yml"
+      - "./lostOps/alertmanager:/config"
+      - alertmanager-data:/data
+    command: --config.file=/config/email.yml --log.level=debug
     networks:
       - monitoring-net
     ports:
@@ -117,6 +136,7 @@ volumes:
   db_data:
   prometheus_data:
   grafana_data:
+  alertmanager-data:
 
 networks:
   monitoring-net:

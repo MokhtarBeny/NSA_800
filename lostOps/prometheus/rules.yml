@@ -1,6 +1,38 @@
 groups:
- - name: example
-   rules:
-   - alert: InstanceDown
-     expr: up == 0
-     for: 1m
+- name: DownAlerts
+  rules:
+  - alert: ServerDown
+    expr:  up == 0
+    for: 5s
+    labels:
+      severity: critical
+    annotations:
+      summary: "Instance {{ $labels.instance }} down"
+      description: "{{ $labels.instance }} of job {{ $labels.job }} has been down for more than 5 minutes."
+
+  - alert: ApplicationDown
+    expr: up{job="nsa_800-app"} == 0
+    for: 5s
+    labels:
+      severity: critical
+    annotations:
+      summary: "Application down"
+      description: "L'application est down depuis plus de 1 minute."
+
+  - alert: DatabaseDown
+    expr: up{job="mysql"} == 0
+    for: 5s
+    labels:
+      severity: critical
+    annotations:
+      summary: "Base de données down"
+      description: "La base de données est down depuis plus de 1 minute."
+
+  - alert: TraefikDown
+    expr: up{job="traefik"} == 0
+    for: 5s
+    labels:
+      severity: critical
+    annotations:
+      summary: "Traefik down"
+      description: "Traefik est down depuis plus de 1 minute."
