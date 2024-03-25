@@ -25,6 +25,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
+    image : sanlamamba/lostops_nsa_800:latest
     ports:
       - "8081:80"
     environment:
