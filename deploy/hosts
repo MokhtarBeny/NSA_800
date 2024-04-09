@@ -1,0 +1,2 @@
+[monitor]
+app-docker486561.westeurope.cloudapp.azure.com ansible_user="{{ monitor_host_username }}"

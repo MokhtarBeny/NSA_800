@@ -1,0 +1,2 @@
+- name: Include set up task
+  include_tasks: setup.yml
