@@ -67,6 +67,12 @@ services:
       DATA_SOURCE_NAME: "app_user:app_password@tcp(db:3306)/"
     command:
       - '--no-collect.info_schema.tables'
+      - --collect.info_schema.processlist 
+      - --collect.info_schema.innodb_metrics 
+      - --collect.info_schema.tablestats 
+      - --collect.info_schema.tables 
+      - --collect.info_schema.userstats 
+      - --collect.engine_innodb_status
     ports:
       - "9104:9104"  # Expose le port de l'exportateur
     networks:
