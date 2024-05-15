@@ -91,11 +91,15 @@ services:
       - loki
     volumes:
       - grafana_data:/var/lib/grafana
-      - ./lostOps/grafana/:/etc/grafana/provisioning/datasources/
+      - ./lostOps/grafana/provisioning/datasources:/etc/grafana/provisioning/datasources/
+      - ./lostOps/grafana/provisioning/dashboards:/etc/grafana/provisioning/dashboards/
+      - ./lostOps/grafana/provisioning/dashboards/prometheus:/var/lib/grafana/dashboards/prometheus/
+      - ./lostOps/grafana/provisioning/dashboards/loki:/var/lib/grafana/dashboards/loki/
     environment:
       GF_INSTALL_PLUGINS: grafana-piechart-panel
       GF_SECURITY_ADMIN_PASSWORD: admin
       GF_SECURITY_ADMIN_USER: admin
+      GF_DASHBOARDS_DEFAULT_HOME_DASHBOARD_PATH: '/var/lib/grafana/dashboards/prometheus/mysql-exporter.json'
     labels:
       - "traefik.http.routers.grafana.service=grafana"
       - "traefik.http.services.grafana.loadbalancer.server.port=3000"
@@ -153,6 +157,32 @@ services:
     depends_on:
       - loki
   
+  mysql-exporter:
+    build: 
+      context: ./lostOps/mysqlExporter/
+      dockerfile: Dockerfile  
+    container_name: mysql-exporter
+    user: "root"
+    volumes:
+      - "./lostOps/mysqlExporter/.my.cnf:/etc/.my.cnf"
+      - mysql-exporter-data:/data
+    environment:
+      DATA_SOURCE_NAME: "root:app_root_password@(db:3306)/"
+    command:
+      - "--collect.info_schema.processlist"
+      - "--collect.info_schema.innodb_metrics"
+      - "--collect.info_schema.tablestats"
+      - "--collect.info_schema.tables"
+      - "--collect.info_schema.userstats"
+      - "--collect.engine_innodb_status"
+      - "--config.my-cnf=/etc/.my.cnf"
+    ports:
+      - "9104:9104"
+    networks:
+        - monitoring-net
+    restart: always
+    
+
 volumes:
   db_data:
   prometheus_data:
@@ -160,6 +190,7 @@ volumes:
   alertmanager-data:
   loki-data:
   promtail-data:
+  mysql-exporter-data:
 
 networks:
   monitoring-net:
