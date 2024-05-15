@@ -181,7 +181,15 @@ services:
     networks:
         - monitoring-net
     restart: always
-    
+  
+  kuma:
+    image: louislam/uptime-kuma:1
+    volumes:
+      - ./kuma:/app/kuma
+      - kuma-data:/data
+    ports:
+      - 3001:3001
+    restart: unless-stopped
 
 volumes:
   db_data:
@@ -191,6 +199,7 @@ volumes:
   loki-data:
   promtail-data:
   mysql-exporter-data:
+  kuma-data:
 
 networks:
   monitoring-net:
