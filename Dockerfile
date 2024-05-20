@@ -4,7 +4,7 @@ FROM php:7.4-apache
 # Installez les extensions PHP nécessaires
 RUN docker-php-ext-install pdo_mysql
 
-RUN apt-get update && apt-get install -y git unzip p7zip-full default-mysql-client
+RUN apt-get update && apt-get install -y git unzip p7zip-full default-mysql-client && apt-get install dos2unix
 
 # Installez Composer
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
@@ -28,7 +28,7 @@ RUN a2enmod rewrite
 
 # Copie du script d'entrée
 COPY docker-entrypoint.sh /usr/local/bin/docker-entrypoint.sh
-RUN chmod +x /usr/local/bin/docker-entrypoint.sh
+RUN dos2unix /usr/local/bin/docker-entrypoint.sh && chmod +x /usr/local/bin/docker-entrypoint.sh 
 
 # Définir le script comme point d'entrée
 ENTRYPOINT ["/usr/local/bin/docker-entrypoint.sh"]
