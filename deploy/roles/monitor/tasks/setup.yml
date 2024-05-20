@@ -28,3 +28,4 @@
         - { cmd: 'sudo docker compose up -d loki' }
         - { cmd: 'sudo docker compose up -d promtail' }
         - { cmd: 'sudo docker compose up -d mysql-exporter' }
+        - { cmd: 'sudo docker compose up -d uptime-kuma' }

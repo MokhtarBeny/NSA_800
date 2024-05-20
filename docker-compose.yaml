@@ -58,6 +58,8 @@ services:
       MYSQL_USER: app_user
       MYSQL_PASSWORD: app_password
       MYSQL_ROOT_PASSWORD: app_root_password
+    ports:
+      - "3306:3306"
     volumes:
       - db_data:/var/lib/mysql
     networks:
@@ -181,7 +183,23 @@ services:
     networks:
         - monitoring-net
     restart: always
-    
+  
+  kuma:
+    image: louislam/uptime-kuma:1
+    container_name: uptime-kuma
+    volumes:
+      - ./kuma:/app/kuma
+      - kuma-data:/data
+    ports:
+      - 3001:3001
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.uptime-kuma.rule=Host(`uptime-kuma`)"
+      - "traefik.http.routers.uptime-kuma.entrypoints=http"
+      - "traefik.http.services.uptime-kuma.loadBalancer.server.port=3001"
+    networks:
+        - monitoring-net
+    restart: unless-stopped
 
 volumes:
   db_data:
@@ -191,6 +209,7 @@ volumes:
   loki-data:
   promtail-data:
   mysql-exporter-data:
+  kuma-data:
 
 networks:
   monitoring-net:
