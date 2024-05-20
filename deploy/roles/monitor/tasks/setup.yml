@@ -21,4 +21,10 @@
       become_user: '{{ monitor_host_username }}'
       loop:
         - { cmd: 'sudo docker compose build' }
-        - { cmd: 'sudo docker compose up -d' }
+        - { cmd: 'sudo docker compose up -d prometheus' }
+        - { cmd: 'sudo docker compose up -d grafana' }
+        - { cmd: 'sudo docker compose up -d node-exporter' }
+        - { cmd: 'sudo docker compose up -d alert-manager' }
+        - { cmd: 'sudo docker compose up -d loki' }
+        - { cmd: 'sudo docker compose up -d promtail' }
+        - { cmd: 'sudo docker compose up -d mysql-exporter' }
