@@ -30,3 +30,12 @@ php artisan migrate
 ```bash
 php artisan db:seed
 ```
+
+
+## deploiement
+
+- activer les droits de la clé ssh : chmod 400 <privatekey>
+
+- commande ansible : ansible-playbook -i deploy/hosts deploy/playbook.yml --tags=monitor -e "monitor_host_username=admuser" --private-key=<privatekey>
+
+- passphrase : H/5gRLP5Hljz1i6qC53T/g

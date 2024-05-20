@@ -1,0 +1,7 @@
+- name: Deployment for monitoring tools
+  hosts: monitor
+  become: yes
+  gather_facts: no
+  roles:
+    - role: monitor
+  tags: monitor
